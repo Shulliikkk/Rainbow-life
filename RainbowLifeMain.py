@@ -18,7 +18,13 @@ coef = [-1, 0, 1]
 Arr1 = [0] * n
 for k in range(n):
     Arr1[k] = [0] * n
-Arr2 = Arr1
+Arr2 = [0] * n
+for k in range(n):
+    Arr2[k] = [0] * n
+def Zeroing(Arr):
+    for i in range(n):
+        for j in range(n):
+            Arr[i][j] = 0
 
 scr = pygame.display.set_mode((WIN_WIDE, WIN_HIGH))
 font = pygame.font.SysFont('couriernew', 24)
@@ -109,9 +115,75 @@ def CellPaint(clik, Color):
         Arr1[j][i] = 3
     pygame.display.update()
 
-def Simulation():
-    pass
+def Neighbors(Arr, i, j):
+    global coef, n
+    N, N1, N2, N3 = 0, 0, 0, 0
+    for k1 in coef:
+        for k2 in coef:
+            if k1 == 0 and k2 == 0:
+                continue
+            if i+k1 >= 0 and i+k1 <= n-1:
+                if j+k2 >= 0 and j+k2 <= n-1:
+                    if Arr[i + k1][j + k2] >= 1:
+                        N += 1
+                    if Arr[i + k1][j + k2] == 1:
+                        N1 += 1
+                    elif Arr[i + k1][j + k2] == 2:
+                        N2 += 1
+                    elif Arr[i + k1][j + k2] == 3:
+                        N3 += 1
+    KolVo = (N, N1, N2, N3)
+    return KolVo
 
+def NextGeneration(Arr1, Arr2):
+    global n
+    for i in range(n):
+        for j in range(n):
+            a = Neighbors(Arr1, i, j)
+            if Arr1[i][j] == 0 and a[0] == 3:
+                if a[1] == 2:
+                    Arr2[i][j] = 1
+                elif a[2] == 2:
+                    Arr2[i][j] = 2
+                elif a[3] == 2:
+                    Arr2[i][j] = 3
+            elif Arr1[i][j] == 1 and a[0] >= 3:
+                Arr2[i][j] = 0
+            elif Arr1[i][j] == 1 and a[0] <= 2:
+                Arr2[i][j] = 1
+            elif Arr1[i][j] == 2 and (a[0] <= 2 or a[0] >= 6):
+                Arr2[i][j] = 0
+            elif Arr1[i][j] == 2 and (a[0] >= 3 or a[0] <= 5):
+                Arr2[i][j] = 2
+            elif Arr1[i][j] == 3 and a[0] <= 5:
+                Arr2[i][j] = 0
+            elif Arr1[i][j] == 3 and a[0] >= 6:
+                Arr2[i][j] = 3
+    return Arr2
+
+def Render(Arr):
+    global n
+    for i in range(n):
+        for j in range(n):
+            if Arr[i][j] == 1:
+                pygame.draw.rect(scr, BLUE, (x_surf+mash*j+1, y_surf+mash*i+1, mash - 1, mash - 1))
+            elif Arr[i][j] == 2:
+                pygame.draw.rect(scr, GREEN, (x_surf+mash*j+1, y_surf+mash*i+1, mash - 1, mash - 1))
+            elif Arr[i][j] == 3:
+                pygame.draw.rect(scr, RED, (x_surf+mash*j+1, y_surf+mash*i+1, mash - 1, mash - 1))
+        pygame.display.update()
+
+def Simulation(N):
+    global Arr1, Arr2
+    if N % 2 == 0:
+        StartFill()
+        Render(NextGeneration(Arr1, Arr2))
+        Zeroing(Arr1)
+    else:
+        StartFill()
+        Render(NextGeneration(Arr2, Arr1))
+        Zeroing(Arr2)
+K = 2
 game = True
 sim = False
 start_game = True
@@ -125,7 +197,6 @@ while game:
         if i.type == pygame.KEYDOWN:
             if i.unicode == 'r' and ranking == True:
                 color = RED
-                print(1)
             elif i.unicode == 'g' and ranking == True:
                 color = GREEN
             elif i.unicode == 'b' and ranking == True:
@@ -145,8 +216,11 @@ while game:
 
     if start_game:
         StartFill()
-        start_game  = False
+        Zeroing(Arr1)
+        Zeroing(Arr2)
+        start_game = False
         ranking = True
+        sim = False
 
     if ranking:
         pygame.draw.rect(scr, BLACK, (x_surf + SURF_WIDE, 0, 300, WIN_HIGH))
@@ -158,6 +232,10 @@ while game:
         pygame.display.update()
 
     if sim:
-        Simulation()
+        Simulation(K)
+        pygame.time.delay(1000)
+    K += 1
     Clok.tick(60)
+
+
 
