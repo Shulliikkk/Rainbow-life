@@ -157,7 +157,7 @@ def Neighbors(Arr, i, j):
                         N1 += 1
                     elif Arr[i+k1][j+k2] == 2:
                         N2 += 1
-                    elif Arr[i+ 1][j+k2] == 3:
+                    elif Arr[i+k1][j+k2] == 3:
                         N3 += 1
     KolVo = (N, N1, N2, N3)
     return KolVo
